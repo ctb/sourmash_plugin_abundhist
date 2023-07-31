@@ -10,6 +10,8 @@ pip install sourmash_plugin_abundhist
 
 ### Example
 
+
+#### Basic command-line usage:
 ```
 % sourmash scripts abundhist example/SRR606249-abund-100k.sig.zip
 
@@ -29,6 +31,15 @@ loaded 1 total that matched ksize & molecule type
 320  [   2]
 356  [   2]
 ```
+
+#### Create a nice histogram figure:
+
+```
+% sourmash scripts abundhist example/SRR606249-abund-100k.sig.zip --figure hist.png
+```
+will create this figure:
+
+![](examples/hist.png)
 
 ## Support
 
