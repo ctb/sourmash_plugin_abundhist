@@ -26,6 +26,7 @@ from sourmash.plugins import CommandLinePlugin
 
 import numpy, collections, csv
 import termplotlib as tpl
+import seaborn, pylab
 
 
 ###
@@ -47,11 +48,12 @@ class Command_Abundhist(CommandLinePlugin):
         subparser.add_argument('signature_file', nargs='+')
 
         subparser.add_argument(
-            '-o', '--output', metavar='FILE',
+            '-o', '--csv', metavar='FILE',
             help='output histogram to this file (in CSV format)'
         )
+        subparser.add_argument('--figure', help='save figure to this file')
         subparser.add_argument(
-            '--abundances', metavar='FILE',
+            '--abundances-csv', metavar='FILE',
             help='output hashes and abundances to this file (in CSV format)')
         subparser.add_argument(
             '--md5', default=None,
@@ -133,17 +135,23 @@ class Command_Abundhist(CommandLinePlugin):
         fig.show()
 
         # output histogram in csv?
-        if args.output:
-            with sourmash_args.FileOutput(args.output, 'wt') as fp:
+        if args.csv:
+            with sourmash_args.FileOutput(args.csv, 'wt') as fp:
                 w = csv.writer(fp)
                 w.writerow(['count', 'n_count'])
                 for nc, c in zip(counts, bin_edges[1:]):
                     w.writerow([c, nc])
 
         # output raw counts tagged with hashval?
-        if args.abundances:
-            with sourmash_args.FileOutput(args.abundances, 'wt') as fp:
+        if args.abundances_csv:
+            with sourmash_args.FileOutput(args.abundances_csv, 'wt') as fp:
                 w = csv.writer(fp)
                 w.writerow(['hashval', 'count'])
                 for hashval, count in counts_d.items():
                     w.writerow([hashval, count])
+
+        # output figure?
+        if args.figure:
+            seaborn.histplot(all_counts, binrange=(min_range, max_range),
+                             bins=n_bins, kde=True)
+            pylab.savefig(args.figure)
