@@ -32,7 +32,17 @@ loaded 1 total that matched ksize & molecule type
 356  [   2]
 ```
 
-#### Create a nice histogram figure:
+#### Create a nice histogram figure for an isolate reads data set
+
+```
+sourmash scripts abundhist --max 100 --min 1 --bins 100 example/reads.sig.gz --figure example/ecoli-reads.png --ymax=200
+```
+
+will create:
+
+![histogram](example/ecoli-reads.png)
+
+#### Create a nice histogram figure for a metagenome:
 
 ```
 % sourmash scripts abundhist example/SRR606249-abund-100k.sig.zip --figure hist.png

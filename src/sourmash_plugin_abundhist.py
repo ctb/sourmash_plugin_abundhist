@@ -26,7 +26,8 @@ from sourmash.plugins import CommandLinePlugin
 
 import numpy, collections, csv
 import termplotlib as tpl
-import seaborn, pylab
+import seaborn
+import matplotlib.pyplot as plt
 
 
 ###
@@ -64,14 +65,16 @@ class Command_Abundhist(CommandLinePlugin):
             help='select signatures whose name contains this substring'
         )
         subparser.add_argument(
-            '--max', type=int, default=None,
+            '-M', '--max', type=int, default=None,
             help='max value for histogram range (default none)')
         subparser.add_argument(
-            '--min', type=int, default=None,
+            '-m', '--min', type=int, default=None,
             help='min value for histogram range (default none)')
         subparser.add_argument(
             '--bins', type=int, default=10,
             help='number of bins (default 10)')
+        subparser.add_argument('--ymax', type=int,
+                               help='maximum Y value for histogram display')
         add_ksize_arg(subparser, default=31)
         add_moltype_args(subparser)
 
@@ -154,4 +157,6 @@ class Command_Abundhist(CommandLinePlugin):
         if args.figure:
             seaborn.histplot(all_counts, binrange=(min_range, max_range),
                              bins=n_bins, kde=True)
-            pylab.savefig(args.figure)
+            if args.ymax:
+                plt.ylim(top=args.ymax)
+            plt.savefig(args.figure)
