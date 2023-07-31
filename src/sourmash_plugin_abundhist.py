@@ -1,4 +1,22 @@
-"calculate abundance profiles from one or more abund sketches"
+"""calculate abundance profiles from one or more abund sketches
+
+Display histograms of k-mer/hash multiplicity in sourmash sketches created
+with `-p abund`.
+
+'abundhist' provides text output, as well as CSV output.
+"""
+
+usage="""
+   sourmash scripts abundhist abund-sketch.sig.gz
+"""
+
+epilog="""
+See https://github.com/ctb/sourmash_plugin_abundhist for more examples.
+
+Need help? Have questions? Ask at http://github.com/sourmash/issues!
+"""
+
+import argparse
 import sourmash
 
 from sourmash import sourmash_args
@@ -18,7 +36,10 @@ import termplotlib as tpl
 
 class Command_Abundhist(CommandLinePlugin):
     command = 'abundhist'
-    description = "calculate abundance profiles from one or more abund sketches"
+    description = __doc__
+    usage = usage
+    epilog = epilog
+    formatter_class = argparse.RawTextHelpFormatter
 
     def __init__(self, subparser):
         super().__init__(subparser)
