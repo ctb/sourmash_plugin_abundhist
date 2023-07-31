@@ -39,7 +39,7 @@ loaded 1 total that matched ksize & molecule type
 ```
 will create this figure:
 
-![](example/hist.png)
+![histogram](example/hist.png)
 
 ## Support
 
