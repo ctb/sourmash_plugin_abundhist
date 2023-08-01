@@ -1,5 +1,5 @@
 """
-Tests for sourmash_plugin_xyz.
+Tests for sourmash_plugin_abundhist.
 """
 import os
 import pytest
