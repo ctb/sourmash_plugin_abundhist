@@ -1,4 +1,5 @@
-"""calculate abundance profiles from one or more abund sketches
+"""\
+calculate abundance profiles from one or more abund sketches
 
 Display histograms of k-mer/hash multiplicity in sourmash sketches created
 with `-p abund`.
