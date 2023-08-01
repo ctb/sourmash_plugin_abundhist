@@ -59,6 +59,13 @@ We suggest filing issues in [the main sourmash issue tracker](https://github.com
 
 `abundhist` is developed at https://github.com/ctb/sourmash_plugin_abundhist.
 
+### Testing
+
+Run:
+```
+pytest tests
+```
+
 ### Generating a release
 
 Bump version number in `pyproject.toml` and push.
