@@ -1,4 +1,5 @@
-"""calculate abundance profiles from one or more abund sketches
+"""\
+calculate abundance profiles from one or more abund sketches
 
 Display histograms of k-mer/hash multiplicity in sourmash sketches created
 with `-p abund`.
@@ -49,7 +50,7 @@ class Command_Abundhist(CommandLinePlugin):
         subparser.add_argument('signature_file', nargs='+')
 
         subparser.add_argument(
-            '-o', '--csv', metavar='FILE',
+            '--csv', metavar='FILE',
             help='output histogram to this file (in CSV format)'
         )
         subparser.add_argument('--figure', help='save figure to this file')
