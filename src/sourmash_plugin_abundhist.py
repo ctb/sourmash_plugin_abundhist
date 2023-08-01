@@ -49,7 +49,7 @@ class Command_Abundhist(CommandLinePlugin):
         subparser.add_argument('signature_file', nargs='+')
 
         subparser.add_argument(
-            '-o', '--csv', metavar='FILE',
+            '--csv', metavar='FILE',
             help='output histogram to this file (in CSV format)'
         )
         subparser.add_argument('--figure', help='save figure to this file')

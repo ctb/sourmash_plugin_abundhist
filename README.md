@@ -13,7 +13,7 @@ pip install sourmash_plugin_abundhist
 
 #### Basic command-line usage:
 ```
-% sourmash scripts abundhist example/SRR606249-abund-100k.sig.zip
+% sourmash scripts abundhist examples/SRR606249-abund-100k.sig.zip
 
 == This is sourmash version 4.8.3.dev0. ==
 == Please cite Brown and Irber (2016), doi:10.21105/joss.00027. ==
@@ -35,21 +35,21 @@ loaded 1 total that matched ksize & molecule type
 #### Create a nice histogram figure for an isolate reads data set
 
 ```
-sourmash scripts abundhist --max 100 --min 1 --bins 100 example/reads.sig.gz --figure example/ecoli-reads.png --ymax=200
+sourmash scripts abundhist --max 100 --min 1 --bins 100 examples/reads.sig.gz --figure examples/ecoli-reads.png --ymax=200
 ```
 
 will create:
 
-![histogram](example/ecoli-reads.png)
+![histogram](examples/ecoli-reads.png)
 
 #### Create a nice histogram figure for a metagenome:
 
 ```
-% sourmash scripts abundhist example/SRR606249-abund-100k.sig.zip --figure hist.png
+% sourmash scripts abundhist examples/SRR606249-abund-100k.sig.zip --figure hist.png
 ```
 will create this figure:
 
-![histogram](example/hist.png)
+![histogram](examples/hist.png)
 
 ## Support
 
