@@ -160,4 +160,5 @@ class Command_Abundhist(CommandLinePlugin):
                              bins=n_bins, kde=True)
             if args.ymax:
                 plt.ylim(top=args.ymax)
+            plt.xlim(min_range, max_range)
             plt.savefig(args.figure)
