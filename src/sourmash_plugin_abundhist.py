@@ -116,12 +116,23 @@ class Command_Abundhist(CommandLinePlugin):
 
         all_counts = list(counts_d.values())
 
+        # find 0.95
+        sum_counts = sum(all_counts)
+        sofar = 0
+        max_range = max(all_counts)
+        for k, v in sorted(counts_d.items(), key=lambda x:x[1]):
+            sofar += v
+            if sofar >= 0.99*sum_counts:
+                print(f'setting default max_range to {v+1} (99% of counts)')
+                max_range = v+1
+                break
+
+        if args.max is not None:
+            max_range = args.max
+
         min_range = 1
         if args.min is not None:
             min_range = args.min
-        max_range = max(all_counts)
-        if args.max is not None:
-            max_range = args.max
 
         n_bins = args.bins
         if max_range - min_range + 1 < n_bins:
