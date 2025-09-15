@@ -76,6 +76,8 @@ class Command_Abundhist(CommandLinePlugin):
             help='number of bins (default 10)')
         subparser.add_argument('--ymax', type=int,
                                help='maximum Y value for histogram display')
+        subparser.add_argument('--figure-title',
+                               default=None, help="plot title")
         add_ksize_arg(subparser, default=31)
         add_moltype_args(subparser)
 
@@ -110,18 +112,32 @@ class Command_Abundhist(CommandLinePlugin):
         notify('')
 
         counts_d = collections.defaultdict(int)
+        counter = collections.Counter()
         for ss in siglist:
             for hashval, abund in ss.minhash.hashes.items():
                 counts_d[hashval] += abund
+                counter[abund] += 1
 
         all_counts = list(counts_d.values())
+        counts_dist = list(counter.items())
+        sum_hist = sum(counter.values())
+
+        # find count that covers 95% of distribution.
+        sofar = 0
+        max_range = max(counter.values())
+        for k, v in sorted(counts_dist):
+            sofar += v
+            if sofar >= 0.99*sum_hist:
+                max_range = 2*k
+                print(f'setting default max_range to {max_range} (2x 99% of counts)')
+                break
+
+        if args.max is not None:
+            max_range = args.max
 
         min_range = 1
         if args.min is not None:
             min_range = args.min
-        max_range = max(all_counts)
-        if args.max is not None:
-            max_range = args.max
 
         n_bins = args.bins
         if max_range - min_range + 1 < n_bins:
@@ -160,5 +176,11 @@ class Command_Abundhist(CommandLinePlugin):
                              bins=n_bins, kde=True)
             if args.ymax:
                 plt.ylim(top=args.ymax)
+            if args.figure_title:
+                plt.title(args.figure_title)
+            else:
+                plt.title("K-mer abundance histogram")
             plt.xlim(min_range, max_range)
+            plt.xlabel("k-mer abundance")
+            plt.ylabel("N(k-mers at that abundance)")
             plt.savefig(args.figure)
