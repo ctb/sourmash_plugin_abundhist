@@ -78,6 +78,8 @@ class Command_Abundhist(CommandLinePlugin):
                                help='maximum Y value for histogram display')
         subparser.add_argument('--figure-title',
                                default=None, help="plot title")
+        subparser.add_argument('-I', '--intersect',
+                               help='plot only hashes that intersect with this signature')
         add_ksize_arg(subparser, default=31)
         add_moltype_args(subparser)
 
@@ -89,11 +91,12 @@ class Command_Abundhist(CommandLinePlugin):
 
         set_quiet(args.quiet)
         moltype = sourmash_args.calculate_moltype(args)
+        ksize = args.ksize
 
         outlist = []
         total_loaded = 0
         for filename in args.signature_file:
-            siglist = sourmash.load_file_as_signatures(filename, ksize=args.ksize,
+            siglist = sourmash.load_file_as_signatures(filename, ksize=ksize,
                                                        select_moltype=moltype)
             siglist = list(siglist)
 
@@ -111,20 +114,49 @@ class Command_Abundhist(CommandLinePlugin):
             notify("selected {} via name / md5 selectors".format(len(siglist)))
         notify('')
 
+        # do we need to intersect hashes?
+        intersect_hashes = None
+        if args.intersect:
+            notify(f"loading --intersect sketch from '{args.intersect}' k={ksize} moltype={moltype}")
+            ss = sourmash.load_file_as_signatures(args.intersect,
+                                                  ksize=ksize,
+                                                  select_moltype=moltype)
+            ss = list(ss)
+            if len(ss) == 0:
+                notify("ERROR: cannot find a sketch that matches ksize/moltype")
+                sys.exit(-1)
+            elif len(ss) > 1:
+                notify("ERROR: find {len(ss)} sketches that match ksize/moltype")
+                sys.exit(-1)
+
+            ss = ss[0]
+
+            intersect_hashes = set(ss.minhash.hashes)
+
+        # track hashval abundanc distribution
         counts_d = collections.defaultdict(int)
+        # track abundance distribution, too
         counter = collections.Counter()
+
+        # collect across all input signatures
         for ss in siglist:
-            for hashval, abund in ss.minhash.hashes.items():
+            hashes_d = ss.minhash.hashes
+            hashvals = set(hashes_d)
+            if intersect_hashes is not None:
+                hashvals &= intersect_hashes
+
+            for hashval in hashvals:
+                abund = hashes_d[hashval]
                 counts_d[hashval] += abund
                 counter[abund] += 1
 
         all_counts = list(counts_d.values())
         counts_dist = list(counter.items())
         sum_hist = sum(counter.values())
+        max_range = max(counter.values())
 
         # find count that covers 95% of distribution.
         sofar = 0
-        max_range = max(counter.values())
         for k, v in sorted(counts_dist):
             sofar += v
             if sofar >= 0.99*sum_hist:
@@ -133,6 +165,7 @@ class Command_Abundhist(CommandLinePlugin):
                 break
 
         if args.max is not None:
+            print(f'overriding default max_range with -M {args.max}')
             max_range = args.max
 
         min_range = 1
@@ -140,8 +173,10 @@ class Command_Abundhist(CommandLinePlugin):
             min_range = args.min
 
         n_bins = args.bins
+        print(f"set number of bins to {n_bins} (--bins)")
         if max_range - min_range + 1 < n_bins:
             n_bins = max_range - min_range + 1
+            print(f"reducing to {n_bins} because of max/min range")
 
         # make hist
         counts, bin_edges = numpy.histogram(all_counts,
