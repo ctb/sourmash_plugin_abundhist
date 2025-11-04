@@ -182,6 +182,8 @@ class Command_Abundhist(CommandLinePlugin):
         counts, bin_edges = numpy.histogram(all_counts,
                                             range=(min_range, max_range),
                                             bins=n_bins)
+        counts_bin3 = counts[2]
+
         bin_edges = bin_edges.astype(int)
 
         # plot
@@ -207,10 +209,14 @@ class Command_Abundhist(CommandLinePlugin):
 
         # output figure?
         if args.figure:
-            seaborn.histplot(all_counts, binrange=(min_range, max_range),
+            seaborn.histplot(all_counts,
+                             binrange=(min_range, max_range),
                              bins=n_bins, kde=True)
             if args.ymax:
                 plt.ylim(top=args.ymax)
+            else:
+                plt.ylim(top=counts_bin3)
+
             if args.figure_title:
                 plt.title(args.figure_title)
             else:
