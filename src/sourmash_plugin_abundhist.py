@@ -25,13 +25,53 @@ from sourmash.cli.utils import add_ksize_arg, add_moltype_args
 from sourmash.logging import debug_literal, set_quiet, notify
 from sourmash.plugins import CommandLinePlugin
 
-import numpy, collections, csv
+import numpy as np
+import collections, csv
 import termplotlib as tpl
 import seaborn
 import matplotlib.pyplot as plt
-
+from sklearn.neighbors import KernelDensity
+from scipy.signal import find_peaks
 
 ###
+
+def find_rightmost_peak(abunds, counter):
+    abunds = list(abunds)
+    counts_dist = list(counter.items())
+    sum_hist = sum(counter.values())
+
+    sofar = 0
+    for k, v in sorted(counts_dist):
+        sofar += v
+        if sofar >= 0.99*sum_hist:
+            max_range = k
+            break
+
+    print(f"max_range: {max_range}, sum_hist: {sum_hist}, sofar: {sofar}")
+    print(max_range, len(abunds), max(abunds))
+
+    arr = np.array(abunds)
+    arr = arr[(arr >= 5)].reshape(-1, 1)
+
+    kde = KernelDensity(kernel="gaussian", bandwidth=20).fit(arr)
+
+    x = np.linspace(0, max_range, max_range)
+    y = kde.score_samples(x.reshape(-1, 1))
+
+    yl = np.exp(y)
+
+    rightmost = 0
+    xx = find_peaks(yl, width=20)[0]
+    print(xx)
+    for i in xx:
+        xval = x[i]
+        if xval > max_range:
+            print('XXX2', xval, max_range)
+            break
+        rightmost = xval
+
+    print(f'right most peak: {rightmost}')
+    return rightmost, yl[i]
 
 #
 # CLI plugin - supports 'sourmash scripts abundhist'
@@ -80,6 +120,8 @@ class Command_Abundhist(CommandLinePlugin):
                                default=None, help="plot title")
         subparser.add_argument('-I', '--intersect',
                                help='plot only hashes that intersect with this signature')
+        subparser.add_argument('--silent', action='store_true',
+                               help="do not output histogram to text")
         add_ksize_arg(subparser, default=31)
         add_moltype_args(subparser)
 
@@ -178,16 +220,21 @@ class Command_Abundhist(CommandLinePlugin):
             n_bins = max_range - min_range + 1
             print(f"reducing to {n_bins} because of max/min range")
 
+        ###
+        rightmost_x, rightmost_y = find_rightmost_peak(counts_d.values(), counter)
+        ###
+
         # make hist
-        counts, bin_edges = numpy.histogram(all_counts,
+        counts, bin_edges = np.histogram(all_counts,
                                             range=(min_range, max_range),
                                             bins=n_bins)
         bin_edges = bin_edges.astype(int)
 
         # plot
-        fig = tpl.figure()
-        f = fig.barh(counts, [ str(x) for x in bin_edges[1:] ], force_ascii=True)
-        fig.show()
+        if not args.silent:
+            fig = tpl.figure()
+            f = fig.barh(counts, [ str(x) for x in bin_edges[1:] ], force_ascii=True)
+            fig.show()
 
         # output histogram in csv?
         if args.csv:
@@ -216,6 +263,11 @@ class Command_Abundhist(CommandLinePlugin):
             else:
                 plt.title("K-mer abundance histogram")
             plt.xlim(min_range, max_range)
+
+            _, max_y = plt.ylim()
+            plt.plot([rightmost_x, rightmost_x,], [0, max_y], 'o--')
             plt.xlabel("k-mer abundance")
             plt.ylabel("N(k-mers at that abundance)")
             plt.savefig(args.figure)
+
+            print('XYZ', rightmost_x, rightmost_y)
