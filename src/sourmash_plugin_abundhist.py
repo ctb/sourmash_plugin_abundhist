@@ -19,6 +19,7 @@ Need help? Have questions? Ask at http://github.com/sourmash/issues!
 
 import argparse
 import sourmash
+import sys
 
 from sourmash import sourmash_args
 from sourmash.cli.utils import add_ksize_arg, add_moltype_args
@@ -61,6 +62,7 @@ def find_rightmost_peak(abunds, counter):
     yl = np.exp(y)
 
     rightmost = 0
+    i = 0
     xx = find_peaks(yl, width=20)[0]
     print(xx)
     for i in xx:
