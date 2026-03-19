@@ -54,6 +54,9 @@ def find_rightmost_peak(abunds, counter):
     arr = np.array(abunds)
     arr = arr[(arr >= 5)].reshape(-1, 1)
 
+    if arr.size == 0:
+        return 0, 0
+
     kde = KernelDensity(kernel="gaussian", bandwidth=20).fit(arr)
 
     x = np.linspace(0, max_range, max_range)
@@ -63,7 +66,10 @@ def find_rightmost_peak(abunds, counter):
 
     rightmost = 0
     xx = find_peaks(yl, width=20)[0]
-    print(xx)
+    #print(xx)
+    if xx.size == 0:
+        return 0, 0
+
     for i in xx:
         xval = x[i]
         if xval > max_range:
@@ -123,6 +129,8 @@ class Command_Abundhist(CommandLinePlugin):
                                help='plot only hashes that intersect with this signature')
         subparser.add_argument('--silent', action='store_true',
                                help="do not output histogram to text")
+        subparser.add_argument('--find-rightmost-peak', action='store_true',
+                               help="find & indicate rightmost peak (experimental)")
         add_ksize_arg(subparser, default=31)
         add_moltype_args(subparser)
 
@@ -195,8 +203,11 @@ class Command_Abundhist(CommandLinePlugin):
 
         all_counts = list(counts_d.values())
         counts_dist = list(counter.items())
-        sum_hist = sum(counter.values())
-        max_range = max(counter.values())
+        sum_hist = 0
+        max_range = 0
+        if counter:
+            sum_hist = sum(counter.values())
+            max_range = max(counter.values())
 
         # find count that covers 95% of distribution.
         sofar = 0
@@ -221,14 +232,22 @@ class Command_Abundhist(CommandLinePlugin):
             n_bins = max_range - min_range + 1
             print(f"reducing to {n_bins} because of max/min range")
 
+        if n_bins <= 0:
+            n_bins = 1
+
         ###
-        rightmost_x, rightmost_y = find_rightmost_peak(counts_d.values(), counter)
+        rightmost_x, rightmost_y = 0, 0
+        if args.find_rightmost_peak:
+            rightmost_x, rightmost_y = find_rightmost_peak(counts_d.values(), counter)
         ###
+
+        if max_range <= min_range:
+            max_range = min_range + 1
 
         # make hist
         counts, bin_edges = np.histogram(all_counts,
-                                            range=(min_range, max_range),
-                                            bins=n_bins)
+                                         range=(min_range, max_range),
+                                         bins=n_bins)
         bin_edges = bin_edges.astype(int)
 
         # plot
@@ -266,9 +285,8 @@ class Command_Abundhist(CommandLinePlugin):
             plt.xlim(min_range, max_range)
 
             _, max_y = plt.ylim()
-            plt.plot([rightmost_x, rightmost_x,], [0, max_y], 'o--')
+            if rightmost_x:
+                plt.plot([rightmost_x, rightmost_x,], [0, max_y], 'o--')
             plt.xlabel("k-mer abundance")
             plt.ylabel("N(k-mers at that abundance)")
             plt.savefig(args.figure)
-
-            print('XYZ', rightmost_x, rightmost_y)
