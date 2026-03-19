@@ -17,6 +17,7 @@ See https://github.com/ctb/sourmash_plugin_abundhist for more examples.
 Need help? Have questions? Ask at http://github.com/sourmash/issues!
 """
 
+import sys
 import argparse
 import sourmash
 
